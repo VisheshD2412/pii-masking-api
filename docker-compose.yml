@@ -1,0 +1,44 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pii-masking-api
+    ports:
+      - "8000:8000"
+    environment:
+      - APP_NAME=PII Masking API
+      - DEBUG=false
+      - HOST=0.0.0.0
+      - PORT=8000
+      - LOG_LEVEL=INFO
+      - CACHE_ENABLED=true
+      - RATE_LIMIT_ENABLED=true
+      - RATE_LIMIT=120/minute
+      - PROMETHEUS_ENABLED=true
+      - CORS_ORIGINS=*
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    restart: unless-stopped
+
+  streamlit:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: pii-masking-ui
+    command: streamlit run ui/streamlit_app.py --server.port=8501 --server.address=0.0.0.0
+    ports:
+      - "8501:8501"
+    environment:
+      - PII_API_URL=http://api:8000
+    depends_on:
+      api:
+        condition: service_healthy
+    profiles:
+      - ui
