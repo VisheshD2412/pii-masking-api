@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: pii-masking-api
+    runtime: python
+    repo: https://github.com/VisheshD2412/pii-masking-api
+    branch: main
+    buildCommand: pip install -r requirements.txt && python -c "import spacy; spacy.cli.download('en_core_web_sm')"
+    startCommand: uvicorn render_app:app --host 0.0.0.0 --port 10000
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.0
